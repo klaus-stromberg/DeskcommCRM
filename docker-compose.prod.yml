@@ -398,7 +398,7 @@ services:
     networks: [internal]
 
   caddy:
-  profiles: ["caddy-nao-usado-com-proxy-externo"]
+    profiles: ["caddy-nao-usado-com-proxy-externo"]
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
