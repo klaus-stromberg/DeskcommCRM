@@ -36,6 +36,7 @@ services:
     pull_policy: ${APP_PULL_POLICY:-always}
     restart: unless-stopped
     env_file: .env
+    labels: ["traefik.http.routers.deskcomm-waha-block.rule=Host(`crm1.holowealth.com.br`) && Path(`/api/v1/webhooks/waha`)", "traefik.http.routers.deskcomm-waha-block.entrypoints=https", "traefik.http.routers.deskcomm-waha-block.tls=true", "traefik.http.routers.deskcomm-waha-block.tls.certresolver=letsencrypt", "traefik.http.routers.deskcomm-waha-block.priority=1000", "traefik.http.routers.deskcomm-waha-block.middlewares=deskcomm-deny", "traefik.http.routers.deskcomm-waha-block.service=noop@internal", "traefik.http.middlewares.deskcomm-deny.ipallowlist.sourcerange=192.0.2.1/32"]
     depends_on:
       srh:
         condition: service_started
@@ -397,6 +398,7 @@ services:
     networks: [internal]
 
   caddy:
+  profiles: ["caddy-nao-usado-com-proxy-externo"]
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
