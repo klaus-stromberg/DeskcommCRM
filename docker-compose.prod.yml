@@ -40,7 +40,7 @@ services:
     depends_on:
       srh:
         condition: service_started
-    waha:
+      waha:
         condition: service_started
     healthcheck:
       # Probe TCP puro (node existe na imagem; curl/nc não). NÃO usar /api/v1/health:
