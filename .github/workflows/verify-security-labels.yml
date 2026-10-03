@@ -1,0 +1,52 @@
+name: Verificar labels de seguranca do webhook WAHA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docker-compose.prod.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docker-compose.prod.yml'
+  workflow_dispatch: {}
+
+jobs:
+  verificar-bloqueio-webhook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checar se os labels de bloqueio do webhook WAHA ainda existem
+        run: |
+          FILE="docker-compose.prod.yml"
+          FALTANDO=0
+
+          checar() {
+            if ! grep -qF "$1" "$FILE"; then
+              echo "::error file=$FILE::Label de seguranca ausente: $1"
+              FALTANDO=1
+            fi
+          }
+
+          checar 'traefik.http.routers.deskcomm-waha-block.rule=Host(`crm1.holowealth.com.br`) && Path(`/api/v1/webhooks/waha`)'
+          checar 'traefik.http.routers.deskcomm-waha-block.middlewares=deskcomm-deny'
+          checar 'traefik.http.routers.deskcomm-waha-block.service=noop@internal'
+          checar 'traefik.http.middlewares.deskcomm-deny.ipallowlist.sourcerange=192.0.2.1/32'
+          checar 'traefik.http.routers.deskcomm-waha-block.priority=1000'
+
+          if [ "$FALTANDO" = "1" ]; then
+            echo ""
+            echo "ATENCAO: um ou mais labels do bloqueio do endpoint /api/v1/webhooks/waha"
+            echo "nao foram encontrados em docker-compose.prod.yml."
+            echo ""
+            echo "Isso normalmente acontece depois de sincronizar este fork com o"
+            echo "repositorio original (melgarafael/DeskcommCRM). NAO faca deploy"
+            echo "assim -- o endpoint do webhook ficaria exposto publicamente."
+            echo ""
+            echo "Veja SEGURANCA-WEBHOOK.md para o procedimento de restauracao."
+            exit 1
+          fi
+
+          echo "OK: todos os labels de bloqueio do webhook WAHA estao presentes."
